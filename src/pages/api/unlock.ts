@@ -1,7 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { NodeSSH } from "node-ssh";
+import { allowCors } from "../../lib/cors";
+import { authenticate } from "../../lib/auth";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+    const user = await authenticate(req, res);
+    if (!user) return;
     try {
         const ssh = new NodeSSH();
 
@@ -22,4 +26,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 };
 
-export default handler;
+export default allowCors(handler);

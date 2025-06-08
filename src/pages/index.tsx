@@ -11,13 +11,14 @@ import { getData } from "./api/temps";
 
 interface Props {
     fans: FanObject[];
+    authed: boolean;
     fail?: boolean;
 }
 
-const Home = ({ fans, fail }: Props): JSX.Element => {
+const Home = ({ fans, authed, fail }: Props): JSX.Element => {
     if (fail)
         return (
-            <div className="h-screen px-2 pt-4 text-white bg-gray-800 sm:flex sm:justify-center sm:items-center sm:pt-0">
+            <div className="min-h-screen flex flex-col px-2 pt-4 text-white bg-gray-800 sm:justify-center sm:items-center sm:pt-0">
                 <div className="text-center">
                     <Fade direction="up" triggerOnce cascade duration={400}>
                         <h1 className="mb-4 text-5xl font-semibold text-red-500">
@@ -45,6 +46,32 @@ const Home = ({ fans, fail }: Props): JSX.Element => {
                 </div>
             </div>
         );
+
+    if (!authed) {
+        return (
+            <div className="min-h-screen flex flex-col px-2 pt-4 text-white bg-gray-800 sm:justify-center sm:items-center sm:pt-0">
+                <div className="container w-full pt-6 pb-4 bg-gray-900 border-2 border-gray-700 rounded shadow-xl sm:px-12 sm:max-w-xl">
+                    <div className="flex items-center justify-between mb-4">
+                        <h1 className="text-xl font-semibold">Fan Temperatures</h1>
+                        <a
+                            href="/login"
+                            className="px-4 py-2 rounded bg-cyan-600 hover:bg-cyan-700"
+                        >
+                            Login
+                        </a>
+                    </div>
+                    <ul className="space-y-2">
+                        {fans.map((fan) => (
+                            <li key={fan.FanName} className="flex justify-between">
+                                <span>{fan.FanName}</span>
+                                <span>{fan.CurrentReading}%</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+        );
+    }
 
     let fanArray = [];
     let ogArray = [];
@@ -101,7 +128,7 @@ const Home = ({ fans, fail }: Props): JSX.Element => {
     };
 
     return (
-        <div className="h-screen px-2 pt-4 text-white bg-gray-800 sm:flex sm:justify-center sm:items-center sm:pt-0">
+        <div className="min-h-screen flex flex-col px-2 pt-4 text-white bg-gray-800 sm:justify-center sm:items-center sm:pt-0">
             <Fade direction="left" triggerOnce>
                 <div className="container w-full pt-6 pb-4 duration-150 bg-gray-900 border-2 border-gray-700 rounded shadow-xl sm:px-12 sm:max-w-2xl">
                     <div className="flex items-center justify-center gap-4 mb-6">
@@ -285,18 +312,21 @@ const Home = ({ fans, fail }: Props): JSX.Element => {
     );
 };
 
-export const getServerSideProps: GetServerSideProps = async () => {
+export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+    const authed = Boolean(req.cookies["session"]);
     try {
         const fans = await getData();
         return {
             props: {
                 fans,
+                authed,
             },
         };
     } catch (error) {
         return {
             props: {
                 fail: true,
+                authed,
             },
         };
     }

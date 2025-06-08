@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import https from "https";
 import base64 from "base-64";
+import { allowCors } from "../../lib/cors";
+import { authenticate } from "../../lib/auth";
 
 export const getData = async () => {
     const httpsAgent = new https.Agent({
@@ -25,7 +27,9 @@ export const getData = async () => {
     return response.Fans;
 };
 
-const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+    const user = await authenticate(req, res);
+    if (!user) return;
     try {
         const fans = await getData();
         return res.send(fans);
@@ -34,4 +38,4 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
     }
 };
 
-export default handler;
+export default allowCors(handler);
